@@ -9,15 +9,18 @@ import javax.swing.JPanel;
 
 class DrawPoints extends JPanel {
 
-	Point[] points;
+	private static double WIDTH = 700;
+	private static double HEIGHT =700;
+	
+	private Space space;
 
-    public DrawPoints(Point[] points) {
-    	this.points = points;
+    public DrawPoints(Space space) {
+    	this.space = space;
     	
         final JFrame frame = new JFrame();
         frame.add(this);
         frame.setTitle("Points");
-        frame.setSize(700, 700);
+        frame.setSize((int)WIDTH, (int)HEIGHT);
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
@@ -29,13 +32,14 @@ class DrawPoints extends JPanel {
         Graphics2D g2d = (Graphics2D) g;
         g2d.setPaint(Color.blue);
 
-        int w = getWidth();
-        int h = getHeight();
+        double w = WIDTH / space.getMaxVal();
+        double h = HEIGHT / space.getMaxVal();
         
+        Point[] points = space.getPoints();
     	for (int i=0; i< points.length; i++) {
     		
-            int x = points[i].getPosition(0);//% w;
-            int y = points[i].getPosition(1);//% h;
+            int x = (int)(points[i].getPosition(0) * w);//% w;
+            int y = (int)(points[i].getPosition(1) * h);//% h;
             g2d.drawLine(x, y, x, y);
     	}
     }

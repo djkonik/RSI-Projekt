@@ -1,30 +1,28 @@
 package meanshift;
 
+import java.rmi.RemoteException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
-import java.util.concurrent.Semaphore;
 
-class MeanShift extends Thread {
+import remote.ReceiveMessageInterface;
+
+public class MeanShift extends Thread {
 
     private final double tolerance;
-    private Semaphore wait_for_all;
     private Space points;
-    private  ArrayList<Point> concentrationPoints;
+    private  List<Point> concentrationPoints;
+    ReceiveMessageInterface server;
 
     private int[] pointIndexes;
     private int max_iter;
     private double radius;
 
-    public MeanShift(Semaphore wait_for_all, Space points, ArrayList<Point> result,
-                     double radius, int max_iter, double tolerance, int[] pointIndexes) throws InterruptedException {
+    public MeanShift(ReceiveMessageInterface server, Space points,
+                     double radius, int max_iter, double tolerance, int[] pointIndexes) {
 
-        this.wait_for_all=wait_for_all;
-
-        wait_for_all.acquire();
+        this.server = server;
         this.points = points;
-        this.concentrationPoints = result;
+        this.concentrationPoints = new ArrayList<Point>();
         this.max_iter=max_iter;
         this.pointIndexes=pointIndexes;
         this.radius = radius;
@@ -46,7 +44,7 @@ class MeanShift extends Thread {
         return (Math.abs(x-y))<=tolerance;
     }
 
-    boolean alreadyExistIn(Point element, ArrayList<Point> points) {
+    boolean alreadyExistIn(Point element, List<Point> points) {
         for(Point point : points){
             if(equalsWithTolerance(element, point, 0.01)) {
             	return true;
@@ -112,7 +110,12 @@ class MeanShift extends Thread {
 
             addNewConcentrationPoint(localMaxima);
         }
-        wait_for_all.release();
+        System.out.println("Client finished evaluation and sends response to server");
+        try {
+			server.sendResult(concentrationPoints);
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
     }
 
     private Point computeLocalMaxima(Point newCenter) {
@@ -130,11 +133,9 @@ class MeanShift extends Thread {
     }
 
     private void addNewConcentrationPoint(Point newCenter) {
-        synchronized (concentrationPoints) {
             if (!alreadyExistIn(newCenter, concentrationPoints)){
                 concentrationPoints.add(newCenter);
             }
-        }
     }
 
     private Point computeWeightCenter(Point center) {

@@ -1,8 +1,9 @@
 package meanshift;
 
+import java.io.Serializable;
 import java.util.Random;
 
-public class Point {
+public class Point implements Serializable {
 
 	private int[] cords;
 	
@@ -13,7 +14,7 @@ public class Point {
 		}
 	}
 	
-	Point(int[] cords) {
+	public Point(int[] cords) {
 		this.cords = cords;
 	}
 	
@@ -33,22 +34,22 @@ public class Point {
 		cords[dimention] = value;
 	}
 	
-	public static Point getRandom(int dimention) {
+	public static Point getRandom(int dimention, int maxVal) {
 		int[] cords = new int[dimention];
 		Random rand = new Random();
 		for (int i=0; i<dimention; i++) {
-			cords[i] = (int)(rand.nextDouble()*700);
+			cords[i] = (int)(rand.nextDouble()*maxVal);
 		}
 		return new Point(cords);
 	}
 	
-	public static Point getRandomGaussian(Point center, int radius) {
+	public static Point getRandomGaussian(Point center, int maxVal, int radius) {
 		int[] cords = new int[center.getDimention()];
 		Random rand = new Random();
 		for (int i=0; i<cords.length; i++) {
 			int val = (int)(rand.nextGaussian() * radius)  + center.getPosition(i);
 			cords[i] = val;
-			if (val < 0 || val > 700) {
+			if (val < 0 || val > maxVal) {
 				i--;
 			}
 		}

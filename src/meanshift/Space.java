@@ -1,12 +1,16 @@
 package meanshift;
 
-public class Space {
+import java.io.Serializable;
 
-	int dimention;
-	Point[] points;
+public class Space implements Serializable {
+
+	private int dimention;
+	private int maxVal;
+	private Point[] points;
 	
-	Space(int dimention, int size) {
+	public Space(int dimention, int size, int maxVal) {
 		this.dimention = dimention;
+		this.maxVal = maxVal;
 		points = new Point[size];
 	}
 	
@@ -16,11 +20,15 @@ public class Space {
 		}
 	}
 	
+	public int getMaxVal() {
+		return maxVal;
+	}
+
 	public Point getPoint(int pos) {
 		return points[pos];
 	}
 	
-	public Point[] getPoints(int pos) {
+	public Point[] getPoints() {
 		return points;
 	}
 	
@@ -30,25 +38,25 @@ public class Space {
 	
 	public void fillRandom() {
 		for(int i=0; i<points.length; i++) {
-			points[i] = Point.getRandom(dimention);
+			points[i] = Point.getRandom(dimention, maxVal);
 		}
 	}
 	
 	public void fillRandomGaussian(Point seed, int radius) {
 		for(int i=0; i<points.length; i++) {
-			points[i] = Point.getRandomGaussian(seed, radius);
+			points[i] = Point.getRandomGaussian(seed, maxVal, radius);
 		}
 	}
 	
 	public void visualize() {
 		if(dimention == 2) {
-			new DrawPoints(points);
+			new DrawPoints(this);
 		}
 	}
 	
 	public Space join(Space other) {
 		if (dimention == other.dimention) {
-			Space newSpace = new Space(dimention, points.length + other.points.length);
+			Space newSpace = new Space(dimention, points.length + other.points.length, Math.max(maxVal, other.maxVal));
 			for (int i=0; i<points.length; i++) {
 				newSpace.points[i] = points[i];
 			}
