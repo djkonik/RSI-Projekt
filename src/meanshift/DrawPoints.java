@@ -27,7 +27,6 @@ class DrawPoints extends JPanel {
     }
 
 
-
     private void doDrawing(Graphics g) {
         Graphics2D g2d = (Graphics2D) g;
         g2d.setPaint(Color.blue);
@@ -40,6 +39,12 @@ class DrawPoints extends JPanel {
     		
             int x = (int)(points[i].getPosition(0) * w);//% w;
             int y = (int)(points[i].getPosition(1) * h);//% h;
+            if (points[i].getCenter() != null) {
+            	g2d.setColor(points[i].getCenter().getColor());
+            } else {
+            	g2d.setColor(points[i].getColor());
+            }
+            
             g2d.drawLine(x, y, x, y);
     	}
     }

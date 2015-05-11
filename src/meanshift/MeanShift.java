@@ -29,24 +29,24 @@ public class MeanShift extends Thread {
         this.tolerance = tolerance;
     }
 
-    boolean equalsWithTolerance(Point a, Point b, double tolerance) {
+    boolean equalsWithTolerance(Point a, Point b) {
         if (a.getDimention() != b.getDimention()) return false;
 
         for (int i = 0; i < a.getDimention(); i++) {
-            if (!areEqualsWithTolerance(a.getPosition(i), b.getPosition(i), tolerance)) {
+            if (!areEqualsWithTolerance(a.getPosition(i), b.getPosition(i))) {
             	return false;
             }
         }
         return true;
     }
 
-    boolean areEqualsWithTolerance(double x, double y, double tolerance){
-        return (Math.abs(x-y))<=tolerance;
+    boolean areEqualsWithTolerance(double x, double y){
+        return (Math.abs(x-y))<tolerance;
     }
 
     boolean alreadyExistIn(Point element, List<Point> points) {
         for(Point point : points){
-            if(equalsWithTolerance(element, point, 0.01)) {
+            if(equalsWithTolerance(element, point)) {
             	return true;
             }
         }
@@ -108,7 +108,7 @@ public class MeanShift extends Thread {
 
             Point localMaxima = computeLocalMaxima(selectedPoint);
 
-            addNewConcentrationPoint(localMaxima);
+            addNewConcentrationPoint(selectedPoint, localMaxima);
         }
         System.out.println("Client finished evaluation and sends response to server");
         try {
@@ -127,15 +127,17 @@ public class MeanShift extends Thread {
             oldCenter= newCenter;
             newCenter = computeWeightCenter(oldCenter);
 
-        } while (!equalsWithTolerance(oldCenter, newCenter,tolerance) && iterations<=max_iter);
+        } while (!equalsWithTolerance(oldCenter, newCenter) && iterations<=max_iter);
 
         return newCenter;
     }
 
-    private void addNewConcentrationPoint(Point newCenter) {
-            if (!alreadyExistIn(newCenter, concentrationPoints)){
+    private void addNewConcentrationPoint(Point selectedPoint, Point newCenter) {
+            /*if (!alreadyExistIn(newCenter, concentrationPoints)){
                 concentrationPoints.add(newCenter);
-            }
+            }*/
+    	selectedPoint.setCenter(newCenter);
+    	concentrationPoints.add(selectedPoint);
     }
 
     private Point computeWeightCenter(Point center) {

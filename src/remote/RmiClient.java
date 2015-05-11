@@ -40,7 +40,7 @@ public class RmiClient extends UnicastRemoteObject implements CallbackMessageInt
 	}
 
 	@Override
-	public void sheduleTask(Space space, double radius, int maxIter, int precision, int[] startPoints) throws RemoteException {
+	public void sheduleTask(Space space, double radius, int maxIter, double precision, int[] startPoints) throws RemoteException {
 		System.out.println("Received space with " + space.getSize() + " points. This node will evaluate " + startPoints.length + " of them");
 		new MeanShift(rmiServer, space, radius, maxIter, precision, startPoints).start();
 	}

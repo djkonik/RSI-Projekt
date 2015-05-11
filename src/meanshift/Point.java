@@ -1,13 +1,16 @@
 package meanshift;
 
+import java.awt.Color;
 import java.io.Serializable;
 import java.util.Random;
 
 public class Point implements Serializable {
 
 	private int[] cords;
-	
-	Point(int dimention) {
+	private Point center;
+	private Color color = Color.BLUE;
+
+	public Point(int dimention) {
 		this.cords = new int[dimention];
 		for (int i=0; i<dimention; i++) {
 			cords[i] = 0;
@@ -34,6 +37,22 @@ public class Point implements Serializable {
 		cords[dimention] = value;
 	}
 	
+	public Point getCenter() {
+		return center;
+	}
+
+	public void setCenter(Point center) {
+		this.center = center;
+	}
+	
+	public Color getColor() {
+		return color;
+	}
+
+	public void setColor(Color color) {
+		this.color = color;
+	}
+
 	public static Point getRandom(int dimention, int maxVal) {
 		int[] cords = new int[dimention];
 		Random rand = new Random();

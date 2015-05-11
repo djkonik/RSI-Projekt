@@ -1,4 +1,5 @@
 package remote;
+import java.awt.Color;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.rmi.RemoteException;
@@ -6,10 +7,10 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
-import java.util.concurrent.Semaphore;
+import java.util.Set;
 
-import meanshift.MeanShift;
 import meanshift.Point;
 import meanshift.Space;
 
@@ -21,10 +22,14 @@ public class RmiServer extends java.rmi.server.UnicastRemoteObject implements Re
 	private Point[] centers;
 	private int gausianSpread;
 	
-	private int radius = 150;
+	private int radius = 175;
 	private int maxIter = 1000;
 	private int precision = 1;
 	
+	private Color colors[] = new Color[] {
+			Color.BLUE, Color.RED, Color.BLACK,
+			Color.GREEN, Color.CYAN, Color.MAGENTA
+	};
 	private long timer;
 	
 	String thisAddress;
@@ -196,6 +201,54 @@ public class RmiServer extends java.rmi.server.UnicastRemoteObject implements Re
 		registry.rebind("rmiServer", this);
 	}
 
+	private boolean isInConcentrationCenter(Point a, Point b) {
+		for (int i=0; i<a.getDimention(); i++) {
+			if (Math.abs(a.getPosition(i) - b.getPosition(i)) > precision*2) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private List<Point> filterResult() {
+		List<Point> result = new ArrayList<Point>();
+        
+        List<List<Point>> concentrations = new ArrayList<List<Point>>();
+        for (Point point : concentrationPoints) {
+        	Point maxima = point.getCenter();
+        	boolean centerFound = false;
+        	for (List<Point> concentration : concentrations) {
+        		Point sample = concentration.get(0).getCenter();
+        		if (isInConcentrationCenter(maxima, sample)) {
+        			centerFound = true;
+        			concentration.add(point);
+        			break;
+        		}
+        	}
+        	if (!centerFound) {
+        		List<Point> newConcentration = new ArrayList<Point>();
+        		newConcentration.add(point);
+        		concentrations.add(newConcentration);
+        	}
+        }
+    	for (int j=0; j<concentrations.size(); j++) {
+    		List<Point> concentration = concentrations.get(j);
+    		Point center = new Point(dimentions);
+    		for(Point point : concentration) {
+    			for(int i=0; i<dimentions; i++) {
+    				center.setPosition(i, center.getPosition(i) + point.getCenter().getPosition(i));
+    			}
+    			point.setCenter(center);
+    		}
+			for(int i=0; i<dimentions; i++) {
+				center.setPosition(i, center.getPosition(i) / concentration.size());
+			}
+			center.setColor(colors[j]);
+			result.add(center);
+    	}
+        
+        return result;
+	}
 
 	@Override
 	public void sendResult(List<Point> result) throws RemoteException {
@@ -203,12 +256,22 @@ public class RmiServer extends java.rmi.server.UnicastRemoteObject implements Re
 		concentrationPoints.addAll(result);
  
 		if (nodes == 0) {
+			result = filterResult();
 			System.out.println("Server received response from client. Evaluation took " + (System.currentTimeMillis() - timer) + " milisecons");
+			
 	        Space after = new Space(dimentions, result.size(), spaceMaxValue);
 	        for (int i=0; i<result.size(); i++) {
 	        	after.setPoint(i, result.get(i));
 	        }
 	        after.visualize();
+	        
+	        after = new Space(dimentions, concentrationPoints.size(), spaceMaxValue);
+	        for (int i=0; i<concentrationPoints.size(); i++) {
+	        	after.setPoint(i, concentrationPoints.get(i));
+	        }
+	        after.visualize();
+	        
+	        
 		} else {
 			System.out.println("Server received response from client. Waits for " + nodes + " clients more");
 		}
